@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-import ssl
-
-if hasattr(ssl,'_create_unverified_context'):
-    ssl._create_default_https_context = ssl._create_unverified_context
-
 import sys
 import time
 import argparse
@@ -51,10 +46,7 @@ class LoginManager:
         return request.urlopen(url, parse.urlencode(form).encode()).read().decode('utf-8')
 
     def create_session(self):
-        try:
-            page = self.read_page(self.proxylogin_url)
-        except Exception as e:
-            return None
+        page = self.read_page(self.proxylogin_url)
         token = '<input name="sessionid" type="hidden" value="'
         token_index = page.index(token) + len(token)
         sessionid = page[token_index: token_index + 16]
@@ -115,13 +107,20 @@ class LoginManager:
 def main():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-c', '--config', help='configuration INI file containing credentials')
-    group.add_argument('-i', '--interactive', action='store_true', help='interactive mode')
-    parser.add_argument('-r', '--refresh', action='store_true', help='after logging in, keep running and refreshing')
+    group.add_argument('-c', '--config', help='Configuration INI file containing credentials')
+    group.add_argument('-i', '--interactive', action='store_true', help='Interactive mode')
+    parser.add_argument('-r', '--refresh', action='store_true', help='After logging in, keep running and refreshing')
+    parser.add_argument('-s', '--skip-tls-verify', action='store_true', help='Foolishly accept TLS certificates signed by unkown certificate authorities')
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
     args = parser.parse_args()
+    
+    if args.skip_tls_verify:
+        import ssl
+        if hasattr(ssl,'_create_unverified_context'):
+            ssl._create_default_https_context = ssl._create_unverified_context
+
     if args.config:
         config = ConfigParser()
         config.read(args.config)
@@ -131,10 +130,12 @@ def main():
         password = getpass('[*] Password: ')
         category = input('[*] Category: ')
         login_manager = LoginManager(username, password, category)
+    
     login_manager.logout()
     print('[*] Logging in... ', end='')
     status = login_manager.login()
     print(status)
+    
     if args.refresh:    
         while True:
             time.sleep(60)
