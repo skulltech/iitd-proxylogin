@@ -11,7 +11,10 @@ _iitd-proxylogin_ is heavily inspired from [this script](https://github.com/abhi
 
 ```console
 sumit@HAL9000:~/Sysadmin/iitd-proxylogin$ python3 proxylogin.py 
-usage: proxylogin.py [-h] (-c CONFIG | -i) [-r] [-s]
+usage: proxylogin.py [-h] (-c CONFIG | -i) [-r] [-s] [-p]
+
+dependency free Python script for logging in to IIT Delhi proxy service
+created by Sumit Ghosh @SkullTech
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -22,4 +25,9 @@ optional arguments:
   -s, --skip-tls-verify
                         Foolishly accept TLS certificates signed by unkown
                         certificate authorities
+  -p, --print-envvars   Print proxy configuration environment variables
+
+available proxy categories are ['btech', 'dual', 'diit', 'faculty',
+'integrated', 'mtech', 'phd', 'retfaculty', 'staff', 'irdstaff', 'mba',
+'mdes', 'msc', 'msr', 'pgdip', 'visitor', 'student', 'guest']
 ```

@@ -6,6 +6,9 @@ import argparse
 from getpass import getpass
 from urllib import request, parse
 from configparser import ConfigParser
+from os.path import join, expanduser
+import subprocess
+
 
 categories = {
     'btech': 22,
@@ -104,13 +107,31 @@ class LoginManager:
             return 'Not connected'
 
 
+def print_envvars(proxy_category):
+    proxy_lines = '''
+[*] Add the following lines to your ~/.profile file
+export http_proxy=http://proxy{category_code}.iitd.ac.in:3128
+export https_proxy=https://proxy{category_code}.iitd.ac.in:3128
+export no_proxy=.iitd.ac.in,.iitd.ernet.in
+export auto_proxy=http://www.cc.iitd.ernet.in/cgi-bin/proxy.{proxy_category}
+export HTTP_PROXY=http://proxy{category_code}.iitd.ac.in:3128
+export HTTPS_PROXY=https://proxy{category_code}.iitd.ac.in:3128
+export NO_PROXY=.iitd.ac.in,.iitd.ernet.in
+export AUTO_PROXY=http://www.cc.iitd.ernet.in/cgi-bin/proxy.{proxy_category}
+'''.format(category_code=categories[proxy_category], proxy_category=proxy_category)
+    print(proxy_lines)
+
+
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description='dependency free Python script for logging in to IIT Delhi proxy service created by Sumit Ghosh @SkullTech',
+        epilog="available proxy categories are ['btech', 'dual', 'diit', 'faculty', 'integrated', 'mtech', 'phd', 'retfaculty', 'staff', 'irdstaff', 'mba', 'mdes', 'msc', 'msr', 'pgdip', 'visitor', 'student', 'guest']")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-c', '--config', help='Configuration INI file containing credentials')
     group.add_argument('-i', '--interactive', action='store_true', help='Interactive mode')
     parser.add_argument('-r', '--refresh', action='store_true', help='After logging in, keep running and refreshing')
     parser.add_argument('-s', '--skip-tls-verify', action='store_true', help='Foolishly accept TLS certificates signed by unkown certificate authorities')
+    parser.add_argument('-p', '--print-envvars', action='store_true', help='Print proxy configuration environment variables')
     if len(sys.argv) < 2:
         parser.print_help()
         sys.exit(1)
@@ -130,7 +151,9 @@ def main():
         password = getpass('[*] Password: ')
         category = input('[*] Category: ')
         login_manager = LoginManager(username, password, category)
-    
+    if args.print_envvars:
+        print_envvars(proxy_category=category)
+
     login_manager.logout()
     print('[*] Logging in... ', end='')
     status = login_manager.login()
